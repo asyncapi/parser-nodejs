@@ -7,11 +7,13 @@ plugins:
   - sonarjs
   - mocha
   - security
+  - jsdoc
 
 extends:
   - plugin:sonarjs/recommended
   - plugin:mocha/recommended
   - plugin:security/recommended
+  - plugin:jsdoc/recommended
 
 parserOptions:
   ecmaVersion: 2018
@@ -107,3 +109,10 @@ overrides:
       sonarjs/no-duplicate-string: 0
       security/detect-object-injection: 0
       security/detect-non-literal-fs-filename: 0
+      jsdoc/require-jsdoc: 0
+
+settings:
+  jsdoc:
+    tagNamePreference:
+      class: constructor
+      class: class
