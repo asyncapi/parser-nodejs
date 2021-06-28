@@ -33,7 +33,7 @@ describe('parse()', function() {
     const result = await parser.parse(inputYAML, { path: __filename });
     expect(JSON.stringify(result.json())).to.equal(outputJSON);
   });
-  
+
   it('should parse AsyncAPI document passed as JS object', async function() {
     const object = JSON.parse(inputJSON);
     const result = await parser.parse(object, { path: __filename });
@@ -47,7 +47,7 @@ describe('parse()', function() {
 
   it('should parse 2 AsyncAPI specs in Promise.all() and not fail with resolving references', async function() {
     const input = [
-      parser.parse(inputYAML, { path: __filename }), 
+      parser.parse(inputYAML, { path: __filename }),
       parser.parse(inputYAML, { path: __filename })
     ];
     const result = await Promise.all(input);
@@ -58,13 +58,13 @@ describe('parse()', function() {
   it('should apply traits to messages even with empty channels object', async function() {
     const result = await parser.parse(inputYAMLNoChannels, { path: __filename });
     expect(JSON.stringify(result.json())).to.equal(outputJSONNoChannels);
-  });  
-  
+  });
+
   it('should apply traits to messages used and not used in a channel', async function() {
     const result = await parser.parse(inputYAMLMessagesChannels, { path: __filename });
     expect(JSON.stringify(result.json())).to.equal(outputJSONMessagesChannels);
   });
-  
+
   it('should fail when asyncapi is not valid', async function() {
     const expectedErrorObject = {
       type: 'https://github.com/asyncapi/parser-js/validation-errors',
@@ -72,7 +72,7 @@ describe('parse()', function() {
       parsedJSON: JSON.parse(invalidAsyncAPI),
       validationErrors: [{
         title: '/info should have required property \'title\'',
-        location: { 
+        location: {
           endColumn: 31,
           endLine: 1,
           endOffset: 29,
@@ -84,14 +84,14 @@ describe('parse()', function() {
       },
       {
         title: '/info should have required property \'version\'',
-        location: { 
+        location: {
           endColumn: 31,
           endLine: 1,
           endOffset: 29,
           jsonPointer: '/info',
           startColumn: 29,
           startLine: 1,
-          startOffset: 27 
+          startOffset: 27
         }
       },
       {
@@ -104,7 +104,7 @@ describe('parse()', function() {
       await parser.parse(invalidAsyncAPI);
     }, expectedErrorObject);
   });
-  
+
   it('should fail when asyncapi is not valid (yaml)', async function() {
     const expectedErrorObject = {
       type: 'https://github.com/asyncapi/parser-js/validation-errors',
@@ -182,7 +182,7 @@ describe('parse()', function() {
       });
     }, expectedErrorObject);
   });
-  
+
   it('should fail when asyncapi is not valid (json)', async function() {
     const expectedErrorObject = {
       type: 'https://github.com/asyncapi/parser-js/validation-errors',
@@ -338,7 +338,7 @@ describe('parse()', function() {
       await parser.parse(inputYAML);
     }, expectedErrorObject);
   });
-  
+
   it('should offer information about JSON line and column where $ref errors are located', async function() {
     const expectedErrorObject = {
       type: 'https://github.com/asyncapi/parser-js/dereference-error',
@@ -360,7 +360,7 @@ describe('parse()', function() {
       await parser.parse(inputJSON);
     }, expectedErrorObject);
   });
-  
+
   it('should not offer information about JS line and column where $ref errors are located if format is JS', async function() {
     const expectedErrorObject = {
       type: 'https://github.com/asyncapi/parser-js/dereference-error',
@@ -403,7 +403,7 @@ describe('parse()', function() {
       });
     }, expectedErrorObject);
   });
-  
+
   it('should offer information about missing root $refs', async function() {
     const expectedErrorObject = {
       type: 'https://github.com/asyncapi/parser-js/dereference-error',
@@ -430,7 +430,7 @@ describe('parse()', function() {
       });
     }, expectedErrorObject);
   });
-  
+
   it('should offer information about missing local $refs', async function() {
     const expectedErrorObject = {
       type: 'https://github.com/asyncapi/parser-js/dereference-error',
@@ -483,7 +483,7 @@ describe('parse()', function() {
       await parser.parse(invalidYAML, { path: __filename });
     }, expectedErrorObject);
   });
-  
+
   it('should throw error if document is invalid JSON', async function() {
     const expectedErrorObject = {
       type: 'https://github.com/asyncapi/parser-js/invalid-json',
@@ -586,7 +586,7 @@ describe('parse()', function() {
     expect(result.components().schema('RecursiveSelf').properties()['selfObjectChildren'].circularProps()[0]).to.equal('test');
     expect(result.components().schema('RecursiveSelf').properties()['selfObjectChildren'].circularProps().length).to.equal(1);
     expect(result.components().schema('NonRecursive').properties()['child'].isCircular()).to.equal(false);
-    //NormalSchemaB is referred twice, from NormalSchemaA and NormalSchemaC. 
+    //NormalSchemaB is referred twice, from NormalSchemaA and NormalSchemaC.
     //If seenObjects array is not handled properly, once NormalSchemaB is seen for a second time while traversing NormalSchemaC, then NormalSchemaC is marked as object holding circular refs
     //This is why it is important to check that NormalSchemaC is or sure not marked as circular
     expect(result.components().schema('NormalSchemaC').isCircular()).to.equal(false);
@@ -609,6 +609,22 @@ it('should apply traits', async function() {
 it('should apply `x-parser-spec-parsed` extension', async function() {
   const parsedSpec = await parser.parse(inputYAML, { path: __filename });
   await expect(parsedSpec.json()[String(xParserSpecParsed)]).to.equal(true);
+});
+
+it('should throw schema-parser-not-registered error on unrecognized schema', async function() {
+  const notRegisteredFormatFile = fs.readFileSync(path.resolve(__dirname, './wrong/unknown-schema-format.yaml'), 'utf8');
+  const errorObject = {
+    title: 'The file does not correspond to a supported schema format',
+    type: 'https://github.com/asyncapi/parser-js/schema-parser-not-registered',
+    detail: `The following message payload "/channels/mychannel/publish/message/payload" has "UnknownSchemaFormat" schema 
+  format which isn't supported by parser instance. Add a missed format parser through the "registerSchemaParser" function.`
+
+  };
+  await checkErrorWrapper(
+    async () => {
+      await parser.parse(notRegisteredFormatFile, {path: __filename});
+    },errorObject
+  );
 });
 
 describe('registerSchemaParser()', function() {
